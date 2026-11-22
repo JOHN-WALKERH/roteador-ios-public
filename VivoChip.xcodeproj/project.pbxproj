@@ -1,0 +1,40 @@
+// !$*UTF8*$!
+{
+ archiveVersion = 1;
+ classes = {};
+ objectVersion = 56;
+ objects = {
+  F00000000000000000000001 = {isa = PBXBuildFile; fileRef = F00000000000000000000002; };
+  F00000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VivoChip.swift; sourceTree = "<group>"; };
+  F00000000000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.application; path = VivoChip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+  F00000000000000000000004 = {isa = PBXGroup; children = (F00000000000000000000002,F00000000000000000000010,F00000000000000000000011,E00000000000000000000002,F00000000000000000000005); sourceTree = "<group>"; };
+  F00000000000000000000005 = {isa = PBXGroup; children = (F00000000000000000000003,E00000000000000000000003); name = Products; sourceTree = "<group>"; };
+  F00000000000000000000006 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (F00000000000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+  F00000000000000000000007 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+  F00000000000000000000008 = {isa = PBXNativeTarget; buildConfigurationList = F0000000000000000000000B; buildPhases = (F00000000000000000000006,F00000000000000000000007,F00000000000000000000013); buildRules = (); dependencies = (); name = VivoChip; productName = VivoChip; productReference = F00000000000000000000003; productType = "com.apple.product-type.application"; };
+  F00000000000000000000009 = {isa = PBXProject; attributes = {LastUpgradeCheck = 1620;}; buildConfigurationList = F0000000000000000000000A; compatibilityVersion = "Xcode 14.0"; developmentRegion = pt; hasScannedForEncodings = 0; knownRegions = (pt, Base); mainGroup = F00000000000000000000004; productRefGroup = F00000000000000000000005; projectDirPath = ""; projectRoot = ""; targets = (F00000000000000000000008,E00000000000000000000008); };
+  F0000000000000000000000A = {isa = XCConfigurationList; buildConfigurations = (F0000000000000000000000C,F0000000000000000000000D); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  F0000000000000000000000B = {isa = XCConfigurationList; buildConfigurations = (F0000000000000000000000E,F0000000000000000000000F); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  F0000000000000000000000C = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = iphoneos; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 16.0; }; name = Debug; };
+  F0000000000000000000000D = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = iphoneos; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 16.0; }; name = Release; };
+  F0000000000000000000000E = {isa = XCBuildConfiguration; baseConfigurationReference = F00000000000000000000010; buildSettings = {}; name = Debug; };
+  F0000000000000000000000F = {isa = XCBuildConfiguration; baseConfigurationReference = F00000000000000000000010; buildSettings = {}; name = Release; };
+  F00000000000000000000010 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = VivoChip.xcconfig; sourceTree = "<group>"; };
+  F00000000000000000000011 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+  F00000000000000000000012 = {isa = PBXBuildFile; fileRef = F00000000000000000000011; };
+  F00000000000000000000013 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (F00000000000000000000012); runOnlyForDeploymentPostprocessing = 0; };
+
+  E00000000000000000000001 = {isa = PBXBuildFile; fileRef = E00000000000000000000002; };
+  E00000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoteadorUITests.swift; sourceTree = "<group>"; };
+  E00000000000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = RoteadorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+  E00000000000000000000006 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (E00000000000000000000001); runOnlyForDeploymentPostprocessing = 0; };
+  E00000000000000000000007 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+  E00000000000000000000008 = {isa = PBXNativeTarget; buildConfigurationList = E0000000000000000000000B; buildPhases = (E00000000000000000000006,E00000000000000000000007); buildRules = (); dependencies = (E00000000000000000000015); name = RoteadorUITests; productName = RoteadorUITests; productReference = E00000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing"; };
+  E0000000000000000000000B = {isa = XCConfigurationList; buildConfigurations = (E0000000000000000000000E,E0000000000000000000000F); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+  E0000000000000000000000E = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = iphoneos; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 16.0; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = app.hotspotlock.guard.controller.uitests; PRODUCT_NAME = RoteadorUITests; TEST_TARGET_NAME = VivoChip; TARGETED_DEVICE_FAMILY = 1; }; name = Debug; };
+  E0000000000000000000000F = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = iphoneos; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 16.0; GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = app.hotspotlock.guard.controller.uitests; PRODUCT_NAME = RoteadorUITests; TEST_TARGET_NAME = VivoChip; TARGETED_DEVICE_FAMILY = 1; }; name = Release; };
+  E00000000000000000000014 = {isa = PBXContainerItemProxy; containerPortal = F00000000000000000000009; proxyType = 1; remoteGlobalIDString = F00000000000000000000008; remoteInfo = VivoChip; };
+  E00000000000000000000015 = {isa = PBXTargetDependency; target = F00000000000000000000008; targetProxy = E00000000000000000000014; };
+ };
+ rootObject = F00000000000000000000009;
+}
