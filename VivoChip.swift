@@ -44,7 +44,7 @@ private enum Vault {
                 [kSecValueData as String: data] as CFDictionary)
         }
         guard status == errSecSuccess else {
-            throw Failure.message("Não foi possível atualizar o Chaves do iPhone.")
+            throw Failure.message("Não foi possível salvar no Chaves do iPhone (erro \(status)).")
         }
     }
 

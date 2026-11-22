@@ -19,7 +19,7 @@ final class RoteadorUITests: XCTestCase {
         field.typeText("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
         save.tap()
         XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.alerts.staticTexts["C\u{00F3}digo salvo. Teste a conex\u{00E3}o com o A15."].exists)
+        XCTAssertTrue(app.alerts.staticTexts["C\u{00F3}digo salvo. Teste a conex\u{00E3}o com o A15."].exists, app.alerts.firstMatch.debugDescription)
         app.alerts.buttons["OK"].tap()
         let host = app.textFields["deviceAddress"]
         host.tap()
@@ -37,7 +37,7 @@ final class RoteadorUITests: XCTestCase {
         XCTAssertEqual(app.textFields["deviceAddress"].value as? String, "127.0.0.1")
         app.buttons["savePairing"].tap()
         XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.alerts.staticTexts["C\u{00F3}digo salvo. Teste a conex\u{00E3}o com o A15."].exists)
+        XCTAssertTrue(app.alerts.staticTexts["C\u{00F3}digo salvo. Teste a conex\u{00E3}o com o A15."].exists, app.alerts.firstMatch.debugDescription)
         app.alerts.buttons["OK"].tap()
 
     }
