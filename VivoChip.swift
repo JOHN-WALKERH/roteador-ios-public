@@ -58,13 +58,71 @@ private enum Vault {
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound {
-            throw Failure.message("Nenhum valor salvo para este campo.")
+            let field = account == "master" ? "a senha mestre" : (account == "pin" ? "o PIN" : "o código de pareamento")
+            throw Failure.message("Ainda não foi salvo \(field). Use Guardar credenciais existentes.")
         }
         guard status == errSecSuccess, let data = result as? Data,
               let value = String(data: data, encoding: .utf8) else {
             throw Failure.message("O acesso ao Chaves não foi autorizado.")
         }
         return value
+    }
+}
+
+private enum PairingStore {
+    static func normalized(_ input: String) throws -> String {
+        let cleaned = input.replacingOccurrences(of: "\u{200B}", with: "")
+            .replacingOccurrences(of: "\u{200E}", with: "")
+            .replacingOccurrences(of: "\u{200F}", with: "")
+            .replacingOccurrences(of: "\u{FEFF}", with: "")
+        let compact = cleaned.components(separatedBy: .whitespacesAndNewlines).joined()
+        if let data = Data(base64Encoded: compact), data.count == 32 {
+            return data.base64EncodedString()
+        }
+        // Android's selectable text also includes instructions above the code.
+        let pattern = try NSRegularExpression(
+            pattern: "(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{43}=(?![A-Za-z0-9+/=])")
+        let matches = pattern.matches(in: cleaned,
+            range: NSRange(cleaned.startIndex..., in: cleaned))
+        if matches.count == 1, let range = Range(matches[0].range, in: cleaned),
+           let data = Data(base64Encoded: String(cleaned[range])), data.count == 32 {
+            return data.base64EncodedString()
+        }
+        throw Failure.message("Use o código exibido no A15.")
+    }
+
+    private static func fileURL() throws -> URL {
+        let manager = FileManager.default
+        let base = try manager.url(for: .applicationSupportDirectory,
+            in: .userDomainMask, appropriateFor: nil, create: true)
+        var directory = base.appendingPathComponent("Roteador", isDirectory: true)
+        try manager.createDirectory(at: directory, withIntermediateDirectories: true,
+            attributes: [.protectionKey: FileProtectionType.complete])
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try directory.setResourceValues(values)
+        return directory.appendingPathComponent("pairing.dat")
+    }
+
+    static func load() throws -> String? {
+        let url = try fileURL()
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        let data = try Data(contentsOf: url)
+        guard let code = String(data: data, encoding: .utf8) else {
+            throw Failure.message("Não consegui ler o pareamento salvo. Cole o código do A15 novamente.")
+        }
+        return try normalized(code)
+    }
+
+    static func save(_ input: String) throws {
+        let code = try normalized(input)
+        let url = try fileURL()
+        // iOS encrypts this private file and makes it unavailable while locked.
+        // It does not depend on the installer's Keychain access group.
+        try Data(code.utf8).write(to: url, options: [.atomic, .completeFileProtection])
+        guard try load() == code else {
+            throw Failure.message("O iPhone não confirmou o salvamento. Tente salvar novamente.")
+        }
     }
 }
 
@@ -177,6 +235,7 @@ private struct ControlView: View {
     @Environment(\.scenePhase) private var phase
     @AppStorage("deviceAddress") private var address = ""
     @State private var pairing = ""
+    @State private var savedPairing = ""
     @State private var master = ""
     @State private var pin = ""
     @State private var current = ""
@@ -198,16 +257,33 @@ private struct ControlView: View {
                     }
                     Text(message.isEmpty ? "Preencha o IP e cole o c\u{00F3}digo de pareamento do A15." : message)
                         .accessibilityIdentifier("actionStatus")
+                    Text("Versão " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"))
+                        .font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("appVersion")
                 }
                 Section("Galaxy A15") {
                     TextField("IP do A15", text: $address)
                         .accessibilityIdentifier("deviceAddress")
                         .keyboardType(.numbersAndPunctuation)
                         .autocorrectionDisabled()
-                    SecureField("Código de pareamento", text: $pairing)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .accessibilityIdentifier("pairingCode")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Código de pareamento do A15").font(.caption)
+                            .foregroundStyle(.secondary)
+                        SecureField("Cole o código completo aqui", text: $pairing)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .accessibilityIdentifier("pairingCode")
+                        HStack {
+                            PasteButton(payloadType: String.self) { values in
+                                if let value = values.first { pairing = value }
+                            }
+                            .accessibilityIdentifier("pastePairing")
+                            Spacer()
+                            Text(pairingStatus).font(.caption)
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("pairingStatus")
+                        }
+                    }
                     Button("Salvar pareamento") { savePairing() }
                         .accessibilityIdentifier("savePairing")
                         .disabled(busy)
@@ -288,12 +364,46 @@ private struct ControlView: View {
         }
     }
 
+    private var pairingStatus: String {
+        guard !savedPairing.isEmpty else { return "Código ainda não salvo." }
+        return (try? PairingStore.normalized(pairing)) == savedPairing
+            ? "Código salvo neste iPhone." : "Código alterado. Salve o pareamento."
+    }
+
+    private func persistPairing(_ input: String) throws {
+        let code = try PairingStore.normalized(input)
+        try PairingStore.save(code)
+        pairing = code
+        savedPairing = code
+        address = address.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private func restorePairing() {
-        // A saved pairing stays in Keychain; never copy it into UserDefaults.
         guard pairing.isEmpty else { return }
-        if let saved = try? Vault.read("pairing") {
-            pairing = saved
+        do {
+            if let saved = try PairingStore.load() {
+                pairing = saved
+                savedPairing = saved
+            } else if let legacy = try? Vault.read("pairing") {
+                try persistPairing(legacy)
+            }
+        } catch {
+            message = "Não consegui recuperar o pareamento neste iPhone. Cole o código do A15 e salve novamente."
         }
+    }
+
+    private func connectionPairing() throws -> String {
+        if !pairing.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let code = try PairingStore.normalized(pairing)
+            if code != savedPairing { try persistPairing(code) }
+            return code
+        }
+        if let code = try PairingStore.load() {
+            pairing = code
+            savedPairing = code
+            return code
+        }
+        throw Failure.message("Cole o código do A15 e toque em Salvar pareamento.")
     }
 
     private func edit(_ selection: Credential) {
@@ -334,15 +444,8 @@ private struct ControlView: View {
         defer { showFeedback = !message.isEmpty }
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         message = ""
-        let code = pairing.components(separatedBy: .whitespacesAndNewlines).joined()
-        guard Data(base64Encoded: code)?.count == 32 else {
-            message = "Use o código exibido no A15."
-            return
-        }
         do {
-            try Vault.save(code, account: "pairing", protected: false)
-            address = address.trimmingCharacters(in: .whitespacesAndNewlines)
-            pairing = code
+            try persistPairing(pairing)
             message = "Código salvo. Teste a conexão com o A15."
         } catch { message = error.localizedDescription }
     }
@@ -361,7 +464,7 @@ private struct ControlView: View {
             return
         }
         do {
-            let code = try Vault.read("pairing")
+            let code = try connectionPairing()
             let password = command == "status" ? "" : (current.isEmpty ? try Vault.read("master") : current)
             let exchange = try RemoteExchange(address: host, pairing: code, action: command,
                                               current: password, replacement: next)
